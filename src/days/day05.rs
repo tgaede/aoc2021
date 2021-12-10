@@ -32,6 +32,7 @@ fn solve_part1(input: &str) -> u32 {
 	}).for_each(|(x1, y1, x2, y2)| {
 		draw_line(&mut grid, x1, y1, x2, y2);
 	});
+	print_grid(&grid);
 
 	let result: u32 = grid.values().filter(|x| **x > 1).count() as u32;
 	println!("part 1 result: {}", result);
@@ -138,6 +139,7 @@ fn solve_part2(input: &str) -> u32 {
 	}).for_each(|(x1, y1, x2, y2)| {
 		draw_line(&mut grid, x1, y1, x2, y2);
 	});
+	print_grid(&grid);
 
 	let result: u32 = grid.values().filter(|x| **x > 1).count() as u32;
 	println!("part 2 result: {}", result);
