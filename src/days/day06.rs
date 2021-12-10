@@ -34,7 +34,7 @@ fn solve_part1(input: &str) -> u32 {
 	}
 
 
-	let mut result: u32 = fish_today.iter().sum();
+	let result: u32 = fish_today.iter().sum();
 	println!("part 1 result: {}", result);
 	return result;
 }
@@ -67,7 +67,7 @@ fn solve_part2(input: &str) -> u128 {
 	}
 
 
-	let mut result: u128 = fish_today.iter().sum();
+	let result: u128 = fish_today.iter().sum();
 	println!("part 2 result: {}", result);
 	return result;
 }
