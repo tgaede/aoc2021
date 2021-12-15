@@ -8,19 +8,19 @@ fn solve_part1(input: &str) {
         .split("\n")
         .map(|x| x.parse::<u32>().unwrap())
         .collect::<Vec<u32>>()
-		.windows(4)
-		.filter( |window| window[1] > window[0])
-		.count();
-	println!("part 1: {}", result);
+        .windows(4)
+        .filter(|window| window[1] > window[0])
+        .count();
+    println!("part 1: {}", result);
 }
 
 fn solve_part2(input: &str) {
-	let result: usize = input
-		.split("\n")
-		.map(|x| x.parse::<u32>().unwrap())
-		.collect::<Vec<u32>>()
-		.windows(4)
-		.filter( |window| (window[1] + window[2] + window[3]) > (window[0] + window[1] + window[2]))
-		.count();
-	println!("part 2: {}", result);
+    let result: usize = input
+        .split("\n")
+        .map(|x| x.parse::<u32>().unwrap())
+        .collect::<Vec<u32>>()
+        .windows(4)
+        .filter(|window| (window[1] + window[2] + window[3]) > (window[0] + window[1] + window[2]))
+        .count();
+    println!("part 2: {}", result);
 }
