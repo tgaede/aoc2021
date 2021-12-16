@@ -1,7 +1,4 @@
-use std::collections::HashSet;
-
-// room for many optimizations - don't clone paths, dont clone strings, do depth first push/pop
-// deduplicate code
+use std::collections::HashMap;
 
 pub fn solve(input: &str) {
     test_part1();
@@ -20,79 +17,36 @@ fn test_part1() {
 }
 
 fn solve_part1(input: &str) {
-    let connections: Vec<(String, String)> = input
-        .trim()
-        .split("\n")
-        .map(|line| {
-            let mut parts = line.split("-");
-            (parts.next().unwrap().to_string(), parts.next().unwrap().to_string())
-        })
-        .collect();
-
-    let mut active_paths: Vec<Vec<String>> = vec![vec!["start".to_string()]];
-	let mut done_paths: Vec<Vec<String>> = Vec::new();
-
-	// let mut round: usize = 1;
-	let mut added: usize;
-	loop  {
-		added = add_connections(&mut active_paths, &mut done_paths, &connections);
-		// println!("round {}, added {}", round, added);
-		// print_paths(&paths);
-		// println!("");
-		// round += 1;
-
-		if added == 0 {
-			break;
-		}
+	let mut connections: HashMap<&str, Vec<&str>> = HashMap::new();
+	for line in input.trim().lines() {
+		let (a, b) = line.split_once('-').unwrap();
+		connections.entry(a).or_insert(Vec::new()).push(b);
+		connections.entry(b).or_insert(Vec::new()).push(a);
 	}
 
-	let result = done_paths.iter().filter(|path| {
-		*path.last().unwrap() == "end".to_string()
-	})
-		.count();
-
+	let result = count_paths(&connections, "start", &mut Vec::new(), true);
 	println!("part 1 result: {}", result);
 }
 
-fn add_connections(active_paths: &mut Vec<Vec<String>>, done_paths: &mut Vec<Vec<String>>, connections: &Vec<(String, String)>) -> usize {
-	let mut new_paths: Vec<Vec<String>> = Vec::new();
-	let connections_added: usize;
+fn count_paths<'a>(connections: &HashMap<&'a str, Vec<&'a str>>, current_cave: &'a str, current_path: & mut Vec<&'a str>, mut seen_twice: bool ) -> usize {
+	if current_cave == "end" {
+		return 1;
+	}
 
-	// println!("paths={:?}, connections={:?}", paths, connections);
-
-    for path in active_paths.drain(..) {
-        let last_item = path.last().unwrap().clone();
-        let items_to_add = connections
-            .iter()
-            .filter(|(k, v)| {
-				// println!("*k={} *v={} last_item={} filter={}", *k, *v, last_item, *k == last_item || *v == last_item);
-				*k == last_item || *v == last_item
-			})
-			.map(|(k, v)| if *k == last_item { v.clone() } else { k.clone() })
-			.filter(|item| {
-				// println!("item={} filter={}", item, item.chars().next().unwrap().is_lowercase() && !path.contains(item) || item.chars().next().unwrap().is_uppercase());
-				item.chars().next().unwrap().is_lowercase() && !path.contains(item) || item.chars().next().unwrap().is_uppercase()
-			});
-
-		for item in items_to_add {
-			let mut new_path = path.clone();
-			new_path.push(item.clone());
-			if item == "end" {
-				done_paths.push(new_path);
-			}
-			else if ! new_paths.contains(&new_path) {
-				new_paths.push(new_path);
-			}
+	if current_cave.chars().any(|c| c.is_lowercase()) && current_path.contains(&current_cave) {
+		if seen_twice || current_cave == "start" {
+			return 0
 		}
-		if new_paths.len() == 0 {
-			done_paths.push(path);
-		}
-    }
+		seen_twice = true;
+	}
 
-	connections_added = new_paths.len();
-	active_paths.extend(new_paths);
+	current_path.push(current_cave);
+	let result: usize = connections[current_cave].iter().map(|next_cave| {
+		count_paths(connections, next_cave, current_path, seen_twice)
+	}).sum();
+	current_path.pop();
 
-    return connections_added;
+	return result;
 }
 
 // fn print_paths(paths: &Vec<Vec<String>>) {
@@ -113,101 +67,14 @@ fn test_part2() {
 }
 
 fn solve_part2(input: &str) {
-	let connections: Vec<(String, String)> = input
-		.trim()
-		.split("\n")
-		.map(|line| {
-			let mut parts = line.split("-");
-			(parts.next().unwrap().to_string(), parts.next().unwrap().to_string())
-		})
-		.collect();
-
-	let mut active_paths: Vec<Vec<String>> = vec![vec!["start".to_string()]];
-	let mut done_paths: Vec<Vec<String>> = Vec::new();
-
-	let mut round: usize = 1;
-	let mut added: usize;
-	loop  {
-		added = add_connections_part2(&mut active_paths, &mut done_paths, &connections);
-		println!("round {}, added {}", round, added);
-		// println!("active paths=");
-		// print_paths(&active_paths);
-		// println!("done paths=");
-		// print_paths(&done_paths);
-		// println!("");
-		round += 1;
-
-		if added == 0 {
-			break;
-		}
+	let mut connections: HashMap<&str, Vec<&str>> = HashMap::new();
+	for line in input.trim().lines() {
+		let (a, b) = line.split_once('-').unwrap();
+		connections.entry(a).or_insert(Vec::new()).push(b);
+		connections.entry(b).or_insert(Vec::new()).push(a);
 	}
 
-	let result = done_paths.iter().filter(|path| {
-		*path.last().unwrap() == "end".to_string()
-	})
-		.count();
-
+	let result = count_paths(&connections, "start", &mut Vec::new(), false);
 	println!("part 2 result: {}", result);
 }
 
-
-fn add_connections_part2(active_paths: &mut Vec<Vec<String>>, done_paths: &mut Vec<Vec<String>>, connections: &Vec<(String, String)>) -> usize {
-	let mut new_paths: Vec<Vec<String>> = Vec::new();
-	let connections_added: usize;
-
-	// println!("paths={:?}, connections={:?}", paths, connections);
-
-	for path in active_paths.drain(..) {
-		let last_item = path.last().unwrap().clone();
-		let lowercase_okay = can_revisit_lowercase(&path);
-		let items_to_add = connections
-			.iter()
-			.filter(|(k, v)| {
-				// println!("*k={} *v={} last_item={} filter={}", *k, *v, last_item, *k == last_item || *v == last_item);
-				*k == last_item || *v == last_item
-			})
-			.map(|(k, v)| if *k == last_item { v.clone() } else { k.clone() })
-			.filter(|item| {
-				// println!("item={} filter={}", item, item.chars().next().unwrap().is_lowercase() && !path.contains(item) || item.chars().next().unwrap().is_uppercase());
-				if item == "start" {
-					false
-				} else if item.chars().next().unwrap().is_lowercase() && path.contains(item) {
-					lowercase_okay
-				} else {
-					true
-				}
-			});
-
-		for item in items_to_add {
-			let mut new_path = path.clone();
-			new_path.push(item.clone());
-			if item == "end" {
-				done_paths.push(new_path);
-			}
-			else if ! new_paths.contains(&new_path) {
-				new_paths.push(new_path);
-			}
-		}
-		if new_paths.len() == 0 {
-			done_paths.push(path);
-		}
-	}
-
-	connections_added = new_paths.len();
-	active_paths.extend(new_paths);
-
-	return connections_added;
-}
-
-fn can_revisit_lowercase(path: &Vec<String>) -> bool {
-	let mut lowercase_items: HashSet<&String> = HashSet::new();
-	for item in path.iter() {
-		if item.chars().next().unwrap().is_lowercase() {
-			if ! lowercase_items.insert(item) {
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
